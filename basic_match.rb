@@ -7,28 +7,23 @@ require 'lib/antlr-runtime-3.2.jar'
 require 'lib/cglib-nodep-2.2.jar'
 require 'pp'
 
-# Turn on debugging
-cfg = com.espertech.esper.client.Configuration.new
-logging_cfg = cfg.getEngineDefaults.getLogging
-logging_cfg.setEnableExecutionDebug(true)
-logging_cfg.setEnableTimerDebug(true)
-logging_cfg.setEnableQueryPlan(true)
-
 # Lets get the epService provider
-epService = com.espertech.esper.client.EPServiceProviderManager.getDefaultProvider()
+ep_service = com.espertech.esper.client.EPServiceProviderManager.getDefaultProvider
 
 # And the configuration
-configuration = epService.getEPAdministrator.getConfiguration
+ep_config = ep_service.getEPAdministrator.getConfiguration
 
 # Prepare the OrderEvent type
-order_event_type = java.util.HashMap.new({"itemName" => "string",
-  "price" => "double"})
-configuration.addEventType("OrderEvent", order_event_type)
+order_event_type = {
+  "itemName" => "string",
+  "price" => "double"
+}
+ep_config.addEventType("OrderEvent", order_event_type)
 
 # Create EPL expression
-#expression = "select * from OrderEvent where cast(price,double) > 150"
-expression = "select avg(price) from OrderEvent"
-statement = epService.getEPAdministrator.createEPL(expression)
+expression = "select * from OrderEvent where cast(price,double) > 150"
+#expression = "select avg(price) from OrderEvent"
+statement = ep_service.getEPAdministrator.createEPL(expression)
 
 # Create a listener object
 class MyListener
@@ -57,10 +52,10 @@ end
 
 # Register unmatched listener
 unmatched_listener = MyUnmatchedListener.new
-epService.getEPRuntime.setUnmatchedListener(unmatched_listener)
+ep_service.getEPRuntime.setUnmatchedListener(unmatched_listener)
 
 # And finally process the event
-eprRuntime = epService.getEPRuntime
-eprRuntime.sendEvent({"itemName"=>"test","price"=>100}, "OrderEvent")
-eprRuntime.sendEvent({"itemName"=>"test","price"=>200}, "OrderEvent")
-eprRuntime.sendEvent({"itemName"=>"test","price"=>300}, "OrderEvent")
+epr_runtime = ep_service.getEPRuntime
+epr_runtime.sendEvent({"itemName"=>"test","price"=>100}, "OrderEvent")
+epr_runtime.sendEvent({"itemName"=>"test","price"=>200}, "OrderEvent")
+epr_runtime.sendEvent({"itemName"=>"test","price"=>300}, "OrderEvent")
