@@ -26,17 +26,19 @@ order_event_type = java.util.HashMap.new({"itemName" => "string",
 configuration.addEventType("OrderEvent", order_event_type)
 
 # Create EPL expression
-expression = "select avg(price) from OrderEvent.win:time(30 sec)";
+#expression = "select * from OrderEvent where cast(price,double) > 150"
+expression = "select avg(price) from OrderEvent"
 statement = epService.getEPAdministrator.createEPL(expression)
 
 # Create a listener object
 class MyListener
   include com.espertech.esper.client.UpdateListener
 
-  java_signature 'public void update(EventBean[] newEvents, EventBean[] oldEvents)'
   def update(newEvents, oldEvents)
-    event = newEvents[0]
-    puts("Matched average event avg=" + event.get("avg(price)").to_s)
+    puts "matched: "
+    newEvents.each do |event|
+      puts "- " + event.getUnderlying.inspect
+    end
   end
 end
 
@@ -48,10 +50,8 @@ statement.addListener(listener);
 class MyUnmatchedListener
   include com.espertech.esper.client.UnmatchedListener
 
-  java_signature 'public void update(EventBean[] event)'
   def update(event)
-    puts "unmatched"
-    puts event.inspect
+    puts "unmatched:\n- " + event.getProperties.inspect
   end
 end
 
